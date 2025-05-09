@@ -3,7 +3,9 @@ require('dotenv').config();
 const Hapi = require('@hapi/hapi');
 const mongoose = require('mongoose');
 const User = require("./models/user.model");
+const Prediction = require("./models/prediction.model");
 const userRoutes = require('./routes/user.routes');
+const predictionRoutes = require('./routes/prediction.routes');
 
 const init = async () => {
     try {
@@ -24,6 +26,7 @@ const init = async () => {
         });
 
         server.route(userRoutes);
+        server.route(predictionRoutes);
 
         await server.start();
         console.log('Server running on %s', server.info.uri);
