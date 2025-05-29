@@ -70,21 +70,51 @@ module.exports = [
     },
     handler: async (request, h) => {
       try {
+        console.log('Login attempt - Payload:', request.payload);
         const { email, password } = request.payload;
-        const user = await User.findOne({ email }).select('-password');
+
+        // Validasi payload
+        if (!email || !password) {
+          console.log('Missing email or password:', { email, password });
+          return h.response({ error: 'Email dan password wajib diisi.' }).code(400);
+        }
+
+        // Cari user dengan email
+        const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+        console.log('User query result:', user ? `User found: ${user._id}` : 'No user found');
+
         if (!user) {
-          return h.response({ error: 'Email tidak ditemukan.' }).code(401);
+          return h.response({ error: 'Email tidak ditemukan.' }).code(400);
         }
 
+        // Cek password
         const match = await bcrypt.compare(password, user.password);
+        console.log('Password comparison result:', match);
+
         if (!match) {
-          return h.response({ error: 'Password salah.' }).code(401);
+          return h.response({ error: 'Password salah.' }).code(400);
         }
 
+        // Buat token
+        if (!JWT_SECRET) {
+          console.error('JWT_SECRET is not defined');
+          throw new Error('Server configuration error: Missing JWT_SECRET');
+        }
         const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
-        return h.response({ message: 'Login berhasil', user, token }).code(200);
+        console.log('Token generated for user:', user._id);
+
+        // Siapkan respons tanpa password
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
+        return h.response({ message: 'Login berhasil', user: userResponse, token }).code(200);
       } catch (error) {
-        return h.response({ error: error.message }).code(500);
+        console.error('Error in /login:', {
+          message: error.message,
+          stack: error.stack,
+          payload: request.payload,
+        });
+        return h.response({ error: 'Terjadi kesalahan server', details: error.message }).code(500);
       }
     },
   },
