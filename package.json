@@ -17,6 +17,7 @@
     "be-floodsight": "file:",
     "dotenv": "^16.5.0",
     "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.2"
   },
   "devDependencies": {
