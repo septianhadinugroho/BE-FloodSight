@@ -1,111 +1,99 @@
 const Prediction = require('../models/prediction.model');
+const Axios = require('axios');
+const jwt = require('jsonwebtoken'); // Add this import
+const { verifyToken } = require('../middlewares/auth');
+
+const getLocationDetails = async (latitude, longitude) => {
+  try {
+    const response = await Axios.get(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
+    );
+    const data = response.data;
+    return {
+      kecamatan: data.address.suburb || 'Unknown',
+      kabupaten: data.address.city || data.address.town || 'Unknown',
+    };
+  } catch (error) {
+    console.error('Geocoding error:', error.message);
+    return {
+      kecamatan: 'Unknown',
+      kabupaten: 'Unknown',
+    };
+  }
+};
+
+const predictFlood = (tahun, bulan, latitude, longitude) => {
+  const floodProneMonths = ['Januari', 'Februari', 'Maret', 'November', 'Desember'];
+  const isFloodProneMonth = floodProneMonths.includes(bulan);
+  const isFloodProneArea = latitude < -6.0 && longitude > 106.8;
+  return isFloodProneMonth && isFloodProneArea && Math.random() > 0.5;
+};
 
 module.exports = [
-  // Tambah prediksi baru
   {
     method: 'POST',
-    path: '/predictions',
+    path: '/api/predict',
     options: {
+      pre: [{ method: verifyToken }],
       payload: {
         parse: true,
-        allow: 'application/json'
-      }
+        allow: 'application/json',
+      },
     },
     handler: async (request, h) => {
       try {
-        const {
-          user,
-          year,
-          month,
-          latitude,
-          longitude,
-          kabupaten,
-          kecamatan,
-          avg_ndvi,
-          curah_hujan,
-          prediksi_label
-        } = request.payload;
+        const { tahun, bulan, latitude, longitude } = request.payload;
+        const { userId } = request.auth;
+
+        if (!tahun || !bulan || !latitude || !longitude) {
+          return h.response({ error: 'Tahun, bulan, latitude, dan longitude wajib diisi' }).code(400);
+        }
+
+        if (latitude < -6.8 || latitude > -5.7 || longitude < 106.3 || longitude > 107.2) {
+          return h.response({ error: 'Koordinat di luar wilayah Jabodetabek' }).code(400);
+        }
+
+        const { kecamatan, kabupaten } = await getLocationDetails(latitude, longitude);
+        const prediksi_label = predictFlood(tahun, bulan, latitude, longitude);
 
         const prediction = new Prediction({
-          user,
-          year,
-          month,
+          userId,
+          tahun,
+          bulan,
           latitude,
           longitude,
-          kabupaten,
           kecamatan,
-          avg_ndvi,
-          curah_hujan,
-          prediksi_label
+          kabupaten,
+          prediksi_label,
         });
+        await prediction.save();
 
-        const saved = await prediction.save();
-        return h.response(saved).code(201);
+        return h.response({
+          prediksi_label,
+          kecamatan,
+          kabupaten,
+        }).code(200);
       } catch (error) {
-        return h.response({ error: error.message }).code(500);
+        console.error('Prediction error:', error);
+        return h.response({ error: 'Terjadi kesalahan server', details: error.message }).code(500);
       }
-    }
+    },
   },
-
-  // Ambil semua prediksi
   {
     method: 'GET',
-    path: '/predictions',
+    path: '/api/predictions',
+    options: {
+      pre: [{ method: verifyToken }],
+    },
     handler: async (request, h) => {
       try {
-        const predictions = await Prediction.find().populate('user');
+        const { userId } = request.auth;
+        const predictions = await Prediction.find({ userId }).select('-userId');
         return h.response(predictions).code(200);
       } catch (error) {
-        return h.response({ error: error.message }).code(500);
+        console.error('Error fetching predictions:', error);
+        return h.response({ error: 'Terjadi kesalahan server', details: error.message }).code(500);
       }
-    }
+    },
   },
-
-  // Ambil prediksi berdasarkan ID
-  {
-    method: 'GET',
-    path: '/predictions/{id}',
-    handler: async (request, h) => {
-      try {
-        const prediction = await Prediction.findById(request.params.id).populate('user');
-        if (!prediction) {
-          return h.response({ error: 'Prediction not found' }).code(404);
-        }
-        return h.response(prediction).code(200);
-      } catch (error) {
-        return h.response({ error: error.message }).code(500);
-      }
-    }
-  },
-
-  // Ambil semua prediksi berdasarkan user ID
-  {
-    method: 'GET',
-    path: '/predictions/user/{userId}',
-    handler: async (request, h) => {
-      try {
-        const predictions = await Prediction.find({ user: request.params.userId }).sort({ createdAt: -1 });
-        return h.response(predictions).code(200);
-      } catch (error) {
-        return h.response({ error: error.message }).code(500);
-      }
-    }
-  },
-
-  // Hapus prediksi
-  {
-    method: 'DELETE',
-    path: '/predictions/{id}',
-    handler: async (request, h) => {
-      try {
-        const deleted = await Prediction.findByIdAndDelete(request.params.id);
-        if (!deleted) {
-          return h.response({ error: 'Prediction not found' }).code(404);
-        }
-        return h.response({ message: 'Prediction deleted successfully' }).code(200);
-      } catch (error) {
-        return h.response({ error: error.message }).code(500);
-      }
-    }
-  }
 ];

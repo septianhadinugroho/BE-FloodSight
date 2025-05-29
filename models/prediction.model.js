@@ -1,47 +1,43 @@
 const mongoose = require('mongoose');
 
 const predictionSchema = new mongoose.Schema({
-  user: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: true
   },
-  year: {
+  tahun: {
     type: Number,
-    default: null,
+    required: true
   },
-  month: {
-    type: Number,
-    default: null,
+  bulan: {
+    type: String,
+    required: true
   },
   latitude: {
     type: Number,
-    default: null,
+    required: true
   },
   longitude: {
     type: Number,
-    default: null,
-  },
-  kabupaten: {
-    type: String,
-    default: null,
+    required: true
   },
   kecamatan: {
     type: String,
-    default: null,
+    required: true
   },
-  avg_ndvi: {
-    type: Number,
-    default: null,
-  },
-  curah_hujan: {
-    type: Number,
-    default: null,
+  kabupaten: {
+    type: String,
+    required: true
   },
   prediksi_label: {
     type: Boolean,
-    default: null,
+    required: true
   },
-}, { timestamps: true });
+  tanggal: {
+    type: Date,
+    default: Date.now
+  }
+});
 
 module.exports = mongoose.model('Prediction', predictionSchema);

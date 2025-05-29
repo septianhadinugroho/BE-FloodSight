@@ -1,22 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-const verifyToken = (request, h) => {
-  const token = request.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return h.response({ error: 'Token tidak ditemukan' }).code(401).takeover();
-  }
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    request.auth = { userId: decoded.userId };
-    return h.continue;
-  } catch (error) {
-    return h.response({ error: 'Token tidak valid' }).code(401).takeover();
-  }
-};
+const { verifyToken } = require('../middlewares/auth');
 
 module.exports = [
   {
@@ -52,7 +37,7 @@ module.exports = [
         });
 
         const savedUser = await user.save();
-        const token = jwt.sign({ userId: savedUser._id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: savedUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         return h.response({ user: savedUser, token }).code(201);
       } catch (error) {
         return h.response({ error: error.message }).code(500);
@@ -73,37 +58,30 @@ module.exports = [
         console.log('Login attempt - Payload:', request.payload);
         const { email, password } = request.payload;
 
-        // Validasi payload
         if (!email || !password) {
           console.log('Missing email or password:', { email, password });
           return h.response({ error: 'Email dan password wajib diisi.' }).code(400);
         }
 
-        // Cari user dengan email
         const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
         console.log('User query result:', user ? `User found: ${user._id}` : 'No user found');
 
         if (!user) {
+          console.log('Email not found:', email);
           return h.response({ error: 'Email tidak ditemukan.' }).code(400);
         }
 
-        // Cek password
         const match = await bcrypt.compare(password, user.password);
         console.log('Password comparison result:', match);
 
         if (!match) {
+          console.log('Password mismatch for email:', email);
           return h.response({ error: 'Password salah.' }).code(400);
         }
 
-        // Buat token
-        if (!JWT_SECRET) {
-          console.error('JWT_SECRET is not defined');
-          throw new Error('Server configuration error: Missing JWT_SECRET');
-        }
-        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         console.log('Token generated for user:', user._id);
 
-        // Siapkan respons tanpa password
         const userResponse = user.toObject();
         delete userResponse.password;
 
