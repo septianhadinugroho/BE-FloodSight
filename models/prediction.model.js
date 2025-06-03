@@ -22,14 +22,6 @@ const predictionSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  kecamatan: {
-    type: String,
-    required: true
-  },
-  kabupaten: {
-    type: String,
-    required: true
-  },
   prediksi_label: {
     type: Boolean,
     required: true
