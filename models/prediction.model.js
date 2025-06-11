@@ -4,32 +4,40 @@ const predictionSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   tahun: {
     type: Number,
-    required: true
+    required: true,
   },
   bulan: {
     type: String,
-    required: true
+    required: true,
   },
   latitude: {
     type: Number,
-    required: true
+    required: true,
   },
   longitude: {
     type: Number,
-    required: true
+    required: true,
   },
   prediksi_label: {
     type: Boolean,
-    required: true
+    required: true,
+  },
+  kabupaten: {
+    type: String,
+    required: true,
+  },
+  kecamatan: {
+    type: String,
+    required: true,
   },
   tanggal: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model('Prediction', predictionSchema);
