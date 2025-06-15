@@ -22,7 +22,6 @@ FloodSight Backend adalah API berbasis Hapi.js yang berfungsi sebagai backend un
 - [Middleware](#middleware)
 - [Deployment](#deployment)
 - [Kontribusi](#kontribusi)
-- [Lisensi](#lisensi)
 
 ## Fitur
 
