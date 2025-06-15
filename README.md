@@ -1,58 +1,55 @@
-Certainly, here's a `README.md` file for the `be-floodsight` project, based on the provided code and file structure:
-
-```markdown
 # FloodSight Backend
 
-FloodSight Backend is a Hapi.js-based API that serves as the backend for the FloodSight application. It handles user authentication, flood prediction requests by integrating with a machine learning model, and fetching real-time weather data for the JABODETABEK (Jakarta, Bogor, Depok, Tangerang, Bekasi) area from the BMKG API.
+FloodSight Backend adalah API berbasis Hapi.js yang berfungsi sebagai backend untuk aplikasi FloodSight. API ini menangani otentikasi pengguna, permintaan prediksi banjir dengan mengintegrasikan model pembelajaran mesin, dan mengambil data cuaca real-time untuk wilayah JABODETABEK (Jakarta, Bogor, Depok, Tangerang, Bekasi) dari API BMKG.
 
-## Table of Contents
+## Daftar Isi
 
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Environment Variables](#environment-variables)
-  - [Running the Application](#running-the-application)
-- [API Endpoints](#api-endpoints)
-  - [User Authentication](#user-authentication)
-  - [Flood Prediction](#flood-prediction)
-  - [Weather Data](#weather-data)
-- [Data Models](#data-models)
-  - [User Model](#user-model)
-  - [Prediction Model](#prediction-model)
+- [Fitur](#fitur)
+- [Teknologi yang Digunakan](#teknologi-yang-digunakan)
+- [Struktur Proyek](#struktur-proyek)
+- [Memulai](#memulai)
+  - [Prasyarat](#prasyarat)
+  - [Instalasi](#instalasi)
+  - [Variabel Lingkungan](#variabel-lingkungan)
+  - [Menjalankan Aplikasi](#menjalankan-aplikasi)
+- [Endpoint API](#endpoint-api)
+  - [Otentikasi Pengguna](#otentikasi-pengguna)
+  - [Prediksi Banjir](#prediksi-banjir)
+  - [Data Cuaca](#data-cuaca)
+- [Model Data](#model-data)
+  - [Model Pengguna](#model-pengguna)
+  - [Model Prediksi](#model-prediksi)
 - [Middleware](#middleware)
 - [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
+- [Kontribusi](#kontribusi)
+- [Lisensi](#lisensi)
 
-## Features
+## Fitur
 
-* **User Authentication**: Register, login, and manage user profiles with JWT-based authentication.
-* **Flood Prediction**:
-    * Send requests to an external Machine Learning (ML) model for flood prediction based on year, month, latitude, and longitude.
-    * Store prediction results, including metadata like `kabupaten` (regency) and `kecamatan` (district), in MongoDB.
-    * Retrieve historical flood predictions for a logged-in user.
-* **Weather Data Integration**: Fetch current weather data for JABODETABEK areas from the BMKG API.
-* **CORS Enabled**: Configured to allow cross-origin requests, suitable for a separate frontend application.
-* **Error Handling**: Comprehensive error handling for API requests and external service calls.
-* **Data Formatting**: Formats `kecamatan` (district) names for consistency.
+- **Otentikasi Pengguna**: Mendaftar, masuk, dan mengelola profil pengguna dengan otentikasi berbasis JWT.
+- **Prediksi Banjir**:
+  - Mengirim permintaan ke model Machine Learning (ML) eksternal untuk prediksi banjir berdasarkan tahun, bulan, lintang, dan bujur.
+  - Menyimpan hasil prediksi, termasuk metadata seperti `kabupaten` dan `kecamatan`, ke MongoDB.
+  - Mengambil riwayat prediksi banjir untuk pengguna yang masuk.
+- **Integrasi Data Cuaca**: Mengambil data cuaca terkini untuk wilayah JABODETABEK dari API BMKG.
+- **CORS Diaktifkan**: Dikonfigurasi untuk mengizinkan permintaan lintas asal, cocok untuk aplikasi frontend terpisah.
+- **Penanganan Error**: Penanganan error yang komprehensif untuk permintaan API dan panggilan layanan eksternal.
+- **Pemformatan Data**: Memformat nama `kecamatan` untuk konsistensi.
 
-## Technologies Used
+## Teknologi yang Digunakan
 
-* **Node.js**: JavaScript runtime.
-* **Hapi.js**: A rich framework for building applications and services.
-* **MongoDB Atlas**: Cloud-hosted NoSQL database.
-* **Mongoose**: MongoDB object data modeling (ODM) for Node.js.
-* **Axios**: Promise-based HTTP client for the browser and Node.js, used for external API calls (BMKG and ML model).
-* **Axios-Retry**: Optional middleware for Axios to automatically retry failed requests.
-* **Bcrypt**: Library to help hash passwords.
-* **jsonwebtoken (JWT)**: Used for secure user authentication.
-* **Dotenv**: Loads environment variables from a `.env` file.
-* **Nodemon**: Utility that monitors for changes in your source and automatically restarts your server (for development).
+- **Node.js**: Runtime JavaScript.
+- **Hapi.js**: Kerangka kerja yang kaya untuk membangun aplikasi dan layanan.
+- **MongoDB Atlas**: Database NoSQL yang di-host di cloud.
+- **Mongoose**: Object Data Modeling (ODM) MongoDB untuk Node.js.
+- **Axios**: Klien HTTP berbasis Promise untuk browser dan Node.js, digunakan untuk panggilan API eksternal (BMKG dan model ML).
+- **Axios-Retry**: Middleware opsional untuk Axios untuk secara otomatis mencoba kembali permintaan yang gagal.
+- **Bcrypt**: Pustaka untuk membantu mengenkripsi kata sandi.
+- **jsonwebtoken (JWT)**: Digunakan untuk otentikasi pengguna yang aman.
+- **Dotenv**: Memuat variabel lingkungan dari file `.env`.
+- **Nodemon**: Utilitas yang memantau perubahan pada sumber Anda dan secara otomatis memulai ulang server Anda (untuk pengembangan).
 
-## Project Structure
+## Struktur Proyek
 
 ```
 .
@@ -73,208 +70,241 @@ FloodSight Backend is a Hapi.js-based API that serves as the backend for the Flo
     └── user.routes.js
 ```
 
-* `index.js`: The main entry point of the application, responsible for setting up the Hapi server, connecting to MongoDB, and defining core routes.
-* `data/jabodetabekAreas.js`: Contains a list of JABODETABEK areas with their names, codes, and `adm4` identifiers for the BMKG API.
-* `middlewares/auth.js`: Contains the `verifyToken` middleware for authenticating requests using JWT.
-* `models/`: Defines Mongoose schemas and models for `User` and `Prediction` data.
-* `routes/`: Contains separate route definitions for `user.routes.js` (authentication and user management) and `prediction.routes.js` (flood prediction and historical data).
-* `vercel.json`: Configuration for Vercel deployment.
-* `.gitignore`: Specifies intentionally untracked files to ignore.
-* `package.json`: Defines project metadata and dependencies.
-* `package-lock.json`: Records the exact dependency tree.
+### Deskripsi File dan Direktori
 
-## Getting Started
+- `index.js`: Titik masuk utama aplikasi, bertanggung jawab untuk mengatur server Hapi, menghubungkan ke MongoDB, dan mendefinisikan rute inti.
+- `data/jabodetabekAreas.js`: Berisi daftar area JABODETABEK dengan nama, kode, dan pengidentifikasi `adm4` untuk API BMKG.
+- `middlewares/auth.js`: Berisi middleware `verifyToken` untuk mengautentikasi permintaan menggunakan JWT.
+- `models/`: Mendefinisikan skema dan model Mongoose untuk data `User` dan `Prediction`.
+- `routes/`: Berisi definisi rute terpisah untuk `user.routes.js` (otentikasi dan manajemen pengguna) dan `prediction.routes.js` (prediksi banjir dan data historis).
+- `vercel.json`: Konfigurasi untuk deployment Vercel.
+- `.gitignore`: Menentukan file yang sengaja tidak dilacak untuk diabaikan.
+- `package.json`: Mendefinisikan metadata proyek dan dependensi.
+- `package-lock.json`: Mencatat pohon dependensi yang tepat.
 
-### Prerequisites
+## Memulai
 
-Before running the application, ensure you have:
+### Prasyarat
 
-* Node.js installed (version 16.20.1 or higher is recommended due to Mongoose requirements).
-* MongoDB Atlas account and a database cluster set up.
-* A Machine Learning (ML) model API endpoint for flood prediction.
+Sebelum menjalankan aplikasi, pastikan Anda memiliki:
 
-### Installation
+- Node.js terinstal (versi 16.20.1 atau lebih tinggi direkomendasikan karena persyaratan Mongoose).
+- Akun MongoDB Atlas dan kluster database yang telah diatur.
+- Endpoint API model Machine Learning (ML) untuk prediksi banjir.
 
-1.  **Clone the repository**:
-    ```bash
-    git clone [https://github.com/septianhadinugroho/be-floodsight.git](https://github.com/septianhadinugroho/be-floodsight.git)
-    cd be-floodsight
-    ```
+### Instalasi
 
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
+1. **Kloning repositori**:
+   ```bash
+   git clone https://github.com/septianhadinugroho/be-floodsight.git
+   cd be-floodsight
+   ```
 
-### Environment Variables
+2. **Instal dependensi**:
+   ```bash
+   npm install
+   ```
 
-Create a `.env` file in the root directory of the project and add the following environment variables:
+### Variabel Lingkungan
 
-```dotenv
+Buat file `.env` di direktori root proyek dan tambahkan variabel lingkungan berikut:
+
+```env
 PORT=3000
 MONGO_URI="your_mongodb_connection_string"
 JWT_SECRET="your_jwt_secret_key"
 ML_API_URL="your_machine_learning_model_api_url"
 ```
 
-* `PORT`: The port number on which the server will run (e.g., `3000`).
-* `MONGO_URI`: Your MongoDB Atlas connection string.
-* `JWT_SECRET`: A strong, random string used for signing JWTs.
-* `ML_API_URL`: The URL of your external Machine Learning model API for flood predictions.
+#### Deskripsi Variabel
 
-### Running the Application
+- `PORT`: Nomor port tempat server akan berjalan (misalnya, `3000`).
+- `MONGO_URI`: String koneksi MongoDB Atlas Anda.
+- `JWT_SECRET`: String acak yang kuat digunakan untuk menandatangani JWT.
+- `ML_API_URL`: URL API model Machine Learning eksternal Anda untuk prediksi banjir.
 
-**Development Mode (with Nodemon):**
+### Menjalankan Aplikasi
+
+**Mode Pengembangan (dengan Nodemon):**
 
 ```bash
 npm start
 ```
 
-This will start the server using `nodemon`, which automatically restarts the application when file changes are detected.
+Ini akan memulai server menggunakan `nodemon`, yang secara otomatis memulai ulang aplikasi saat perubahan file terdeteksi.
 
-**Production Mode:**
+**Mode Produksi:**
 
 ```bash
 node index.js
 ```
 
-## API Endpoints
+## Endpoint API
 
-The API is served on `http://localhost:PORT` (or your configured host and port).
+API disajikan di `http://localhost:PORT` (atau host dan port yang Anda konfigurasi).
 
-### User Authentication
+### Otentikasi Pengguna
 
-* **`POST /register`**
-    * Registers a new user.
-    * **Request Body**:
-        ```json
-        {
-          "name": "John Doe",
-          "email": "john.doe@example.com",
-          "city": "Jakarta",
-          "longitude": 106.8271,
-          "latitude": -6.1751,
-          "password": "securepassword123"
-        }
-        ```
-    * **Response**: Returns the registered user object (without password) and a JWT token.
+#### `POST /register`
+Mendaftarkan pengguna baru.
 
-* **`POST /login`**
-    * Authenticates a user.
-    * **Request Body**:
-        ```json
-        {
-          "email": "john.doe@example.com",
-          "password": "securepassword123"
-        }
-        ```
-    * **Response**: Returns a success message, the user object (without password), and a JWT token.
+**Body Permintaan:**
+```json
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "city": "Jakarta",
+  "longitude": 106.8271,
+  "latitude": -6.1751,
+  "password": "securepassword123"
+}
+```
 
-* **`GET /users`**
-    * Retrieves all users (requires authentication).
-    * **Headers**: `Authorization: Bearer <token>`
-    * **Response**: An array of user objects (without passwords).
+**Respons:** Mengembalikan objek pengguna yang terdaftar (tanpa kata sandi) dan token JWT.
 
-* **`GET /users/{id}`**
-    * Retrieves a specific user by ID (requires authentication and matching `userId`).
-    * **Headers**: `Authorization: Bearer <token>`
-    * **Response**: The user object (without password).
+#### `POST /login`
+Mengotentikasi pengguna.
 
-* **`PUT /users/{id}`**
-    * Updates a user's information (requires authentication and matching `userId`).
-    * **Headers**: `Authorization: Bearer <token>`
-    * **Request Body**: (Partial updates allowed)
-        ```json
-        {
-          "name": "Johnathan Doe",
-          "city": "Bogor",
-          "password": "newsecurepassword"
-        }
-        ```
-    * **Response**: The updated user object (without password).
+**Body Permintaan:**
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "securepassword123"
+}
+```
 
-* **`DELETE /users/{id}`**
-    * Deletes a user (requires authentication and matching `userId`).
-    * **Headers**: `Authorization: Bearer <token>`
-    * **Response**: A success message.
+**Respons:** Mengembalikan pesan sukses, objek pengguna (tanpa kata sandi), dan token JWT.
 
-### Flood Prediction
+#### `GET /users`
+Mengambil semua pengguna (membutuhkan otentikasi).
 
-* **`POST /api/predict`**
-    * Requests a flood prediction from the ML model and saves the result.
-    * **Headers**: `Authorization: Bearer <token>`
-    * **Request Body**:
-        ```json
-        {
-          "tahun": 2025,
-          "bulan": "Juni",
-          "latitude": -6.2088,
-          "longitude": 106.8456
-        }
-        ```
-    * **Response**: Returns the `prediksi_label` (boolean indicating flood prediction) and metadata from the ML model, including formatted `kabupaten` and `kecamatan`.
-    * **Validation**: Coordinates must be within the Jabodetabek area (latitude between -6.8 and -5.9, longitude between 106.3 and 107.2).
+**Header:** `Authorization: Bearer <token>`
 
-* **`GET /api/predictions`**
-    * Retrieves all historical flood predictions for the authenticated user.
-    * **Headers**: `Authorization: Bearer <token>`
-    * **Response**: An array of prediction objects, with formatted `kecamatan` names.
+**Respons:** Sebuah array objek pengguna (tanpa kata sandi).
 
-### Weather Data
+#### `GET /users/{id}`
+Mengambil pengguna tertentu berdasarkan ID (membutuhkan otentikasi dan `userId` yang cocok).
 
-* **`GET /api/weather`**
-    * Fetches current weather data for all JABODETABEK areas from the BMKG API. This endpoint handles rate limiting by introducing delays between requests.
-    * **Response**: An object containing weather data for each JABODETABEK area, or a list of failed areas with an error message.
+**Header:** `Authorization: Bearer <token>`
 
-## Data Models
+**Respons:** Objek pengguna (tanpa kata sandi).
 
-### User Model
+#### `PUT /users/{id}`
+Memperbarui informasi pengguna (membutuhkan otentikasi dan `userId` yang cocok).
 
-Represents a user in the system.
+**Header:** `Authorization: Bearer <token>`
 
-* `name`: `String`, required, trimmed.
-* `email`: `String`, required, unique, lowercase.
-* `city`: `String`, optional.
-* `longitude`: `Number`, optional.
-* `latitude`: `Number`, optional.
-* `password`: `String`, required (stored as hashed).
-* `timestamps`: Automatically adds `createdAt` and `updatedAt` fields.
+**Body Permintaan:** (Pembaruan parsial diizinkan)
+```json
+{
+  "name": "Johnathan Doe",
+  "city": "Bogor",
+  "password": "newsecurepassword"
+}
+```
 
-### Prediction Model
+**Respons:** Objek pengguna yang diperbarui (tanpa kata sandi).
 
-Stores flood prediction results.
+#### `DELETE /users/{id}`
+Menghapus pengguna (membutuhkan otentikasi dan `userId` yang cocok).
 
-* `userId`: `ObjectId` (references `User`), required.
-* `tahun`: `Number`, required (year of prediction).
-* `bulan`: `String`, required (month of prediction, e.g., "Januari", "Februari").
-* `latitude`: `Number`, required.
-* `longitude`: `Number`, required.
-* `prediksi_label`: `Boolean`, required (true if flood predicted, false otherwise).
-* `kabupaten`: `String`, required (regency name).
-* `kecamatan`: `String`, required (district name).
-* `tanggal`: `Date`, defaults to `Date.now` (timestamp of the prediction).
+**Header:** `Authorization: Bearer <token>`
+
+**Respons:** Pesan sukses.
+
+### Prediksi Banjir
+
+#### `POST /api/predict`
+Meminta prediksi banjir dari model ML dan menyimpan hasilnya.
+
+**Header:** `Authorization: Bearer <token>`
+
+**Body Permintaan:**
+```json
+{
+  "tahun": 2025,
+  "bulan": "Juni",
+  "latitude": -6.2088,
+  "longitude": 106.8456
+}
+```
+
+**Respons:** Mengembalikan `prediksi_label` (boolean yang menunjukkan prediksi banjir) dan metadata dari model ML, termasuk `kabupaten` dan `kecamatan` yang diformat.
+
+**Validasi:** Koordinat harus berada dalam wilayah Jabodetabek (lintang antara -6.8 dan -5.9, bujur antara 106.3 dan 107.2).
+
+#### `GET /api/predictions`
+Mengambil semua riwayat prediksi banjir untuk pengguna yang terautentikasi.
+
+**Header:** `Authorization: Bearer <token>`
+
+**Respons:** Sebuah array objek prediksi, dengan nama `kecamatan` yang diformat.
+
+### Data Cuaca
+
+#### `GET /api/weather`
+Mengambil data cuaca terkini untuk semua wilayah JABODETABEK dari API BMKG. Endpoint ini menangani pembatasan laju dengan memperkenalkan penundaan antar permintaan.
+
+**Respons:** Objek yang berisi data cuaca untuk setiap area JABODETABEK, atau daftar area yang gagal dengan pesan kesalahan.
+
+## Model Data
+
+### Model Pengguna
+
+Mewakili pengguna dalam sistem.
+
+**Schema:**
+- `name`: `String`, wajib, di-trim.
+- `email`: `String`, wajib, unik, huruf kecil.
+- `city`: `String`, opsional.
+- `longitude`: `Number`, opsional.
+- `latitude`: `Number`, opsional.
+- `password`: `String`, wajib (disimpan sebagai hash).
+- `timestamps`: Secara otomatis menambahkan bidang `createdAt` dan `updatedAt`.
+
+### Model Prediksi
+
+Menyimpan hasil prediksi banjir.
+
+**Schema:**
+- `userId`: `ObjectId` (mereferensikan `User`), wajib.
+- `tahun`: `Number`, wajib (tahun prediksi).
+- `bulan`: `String`, wajib (bulan prediksi, misal "Januari", "Februari").
+- `latitude`: `Number`, wajib.
+- `longitude`: `Number`, wajib.
+- `prediksi_label`: `Boolean`, wajib (true jika banjir diprediksi, false jika tidak).
+- `kabupaten`: `String`, wajib (nama kabupaten).
+- `kecamatan`: `String`, wajib (nama kecamatan).
+- `tanggal`: `Date`, default ke `Date.now` (timestamp prediksi).
 
 ## Middleware
 
-* **`verifyToken`**: This middleware ensures that a valid JWT is present in the `Authorization` header of the request. If the token is missing or invalid, it returns a 401 Unauthorized response. If valid, it decodes the token and attaches the `userId` to `request.auth`.
+### `verifyToken`
+Middleware ini memastikan bahwa JWT yang valid ada di header `Authorization` dari permintaan. Jika token hilang atau tidak valid, ia mengembalikan respons 401 Unauthorized. Jika valid, ia mendekode token dan melampirkan `userId` ke `request.auth`.
 
 ## Deployment
 
-The project includes a `vercel.json` file, indicating that it can be deployed to Vercel.
+Proyek ini menyertakan file `vercel.json`, yang menunjukkan bahwa proyek ini dapat di-deploy ke Vercel.
 
-To deploy to Vercel:
+### Deploy ke Vercel
 
-1.  **Install Vercel CLI**: `npm install -g vercel`
-2.  **Login to Vercel**: `vercel login`
-3.  **Deploy**: `vercel`
+1. **Instal Vercel CLI**: 
+   ```bash
+   npm install -g vercel
+   ```
 
-Ensure your environment variables are configured in Vercel's project settings.
+2. **Login ke Vercel**: 
+   ```bash
+   vercel login
+   ```
 
-## Contributing
+3. **Deploy**: 
+   ```bash
+   vercel
+   ```
 
-Feel free to open issues or submit pull requests.
+**Catatan:** Pastikan variabel lingkungan Anda dikonfigurasi di pengaturan proyek Vercel.
 
-## License
+## Kontribusi
 
-This project is licensed under the ISC License.
-```
+Jangan ragu untuk membuka masalah (issue) atau mengirimkan permintaan tarik (pull request).
